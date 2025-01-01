@@ -41,13 +41,15 @@ def extract_info(file):
             if budget_match:
                 budget = budget_match.group(1).replace(" ", "")
     
-    st.write(f"PV d'AG de la copropriété : {address}")
-    st.write(f"Le budget de l'exercice clos est : {budget} Euros")
+    return address, budget
 
 st.set_page_config(page_title="Analyseur de PV d'AG", layout="wide")
 st.title("📄 Analyseur de PV d'AG")
 
-uploaded_file = st.file_uploader("Choisir le PV (PDF)", type="pdf")
+uploaded_files = st.file_uploader("Choisir les PVs (PDF)", type="pdf", accept_multiple_files=True)
 
-if uploaded_file:
-    extract_info(uploaded_file)
+if uploaded_files:
+    for uploaded_file in uploaded_files:
+        address, budget = extract_info(uploaded_file)
+        st.write(f"PV d'AG de la copropriété : {address}")
+        st.write(f"Le budget de l'exercice clos est : {budget} Euros")
