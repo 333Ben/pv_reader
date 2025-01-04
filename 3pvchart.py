@@ -134,7 +134,19 @@ hover_texts = [data[key]['hover_text'] for key in data]
 
 # Create the pie chart
 fig = go.Figure(data=[go.Pie(labels=labels, values=values, hovertext=hover_texts, marker=dict(colors=colors))])
-fig.update_layout(width=250, height=250, margin=dict(l=0, r=0, t=0, b=0))
+fig.update_layout(
+    width=400, 
+    height=400, 
+    margin=dict(l=0, r=0, t=0, b=0),
+    showlegend=False
+)
+fig.update_traces(
+    textinfo='label+percent',
+    textposition='inside',
+    insidetextorientation='radial',
+    hoverinfo='label+text',
+    marker=dict(line=dict(color='#000000', width=2))
+)
 
 st.set_page_config(page_title="Analyse mes PV d'AG", layout="wide")
 st.title("📄 Analyse mes PV d'AG")
@@ -160,3 +172,46 @@ if uploaded_files:
 
 # Display the pie chart
 st.plotly_chart(fig)
+
+# Download section layout
+st.markdown("""
+<style>
+.download-section {
+    display: flex;
+    align-items: center;
+    line-height: 36px;
+    margin-bottom: 12px;
+}
+.download-section .label {
+    margin-right: 12px;
+}
+.download-section .button {
+    background-color: #E8FFF2;
+    border: 1px solid #D4FFE4;
+    color: #2E7D32;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-right: 12px;
+}
+.download-section .checkbox {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #D4FFE4;
+    margin-right: 12px;
+}
+.download-section .status-icon {
+    width: 20px;
+    height: 20px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# Example download section
+st.markdown("""
+<div class="download-section">
+    <span class="label">PV 2024</span>
+    <button class="button">Download</button>
+    <input type="checkbox" class="checkbox">
+    <img src="success_icon.svg" class="status-icon">
+</div>
+""", unsafe_allow_html=True)
