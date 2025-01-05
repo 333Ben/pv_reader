@@ -49,6 +49,19 @@ def extract_info(file):
     
     return address, budget
 
+def validate_pv_year(text, expected_year):
+    """Vérifie si le PV correspond à l'année attendue"""
+    year_patterns = [
+        f"AG.*{expected_year}",  # ex: "AG 2024" ou "Assemblée Générale 2024"
+        f"exercice.*{expected_year}",  # ex: "exercice 2024"
+        f"{expected_year}.*exercice"  # ex: "2024 exercice"
+    ]
+    
+    for pattern in year_patterns:
+        if re.search(pattern, text, re.IGNORECASE):
+            return True
+    return False
+
 # Data structure for the pie chart
 data = {
     'PV_2024': {
@@ -177,53 +190,63 @@ if uploaded_files:
 # Display the pie chart
 st.plotly_chart(fig)
 
-# Créer une section de téléchargement pour chaque document
+# Modifier la section des colonnes pour inclure la fonctionnalité d'upload
+for key, item in data.items():
+    col1, col2, col3 = st.columns([3, 1, 1])
+    
+    with col1:
+        st.markdown(f"<span class='label'>{item['label']}</span>", unsafe_allow_html=True)
+    
+    with col2:
+        if key in ['PV_2024', 'PV_2023', 'PV_2022']:
+            expected_year = key.split('_')[1]  # Extrait l'année du key (2024, 2023, etc.)
+            uploaded_file = st.file_uploader(
+                "Upload PV",
+                type="pdf",
+                key=f"upload_{key}",
+                label_visibility="collapsed"
+            )
+            
+            if uploaded_file:
+                images = convert_pdf_to_images(uploaded_file)
+                text = ""
+                for image in images:
+                    text += pytesseract.image_to_string(image, lang='fra')
+                
+                if validate_pv_year(text, expected_year):
+                    address, budget = extract_info(uploaded_file)
+                    if address:
+                        st.write(f"Adresse : {address}")
+                    if budget:
+                        st.write(f"Budget : {budget} Euros")
+                else:
+                    st.error(f"Ce document ne semble pas être un PV de {expected_year}")
+        else:
+            st.button("Download", disabled=True, key=f"disabled_{key}", use_container_width=True)
+    
+    with col3:
+        st.checkbox("", key=f"check_{key}")
+
+# Mettre à jour le style CSS
 st.markdown("""
 <style>
-.download-section {
-    display: flex;
-    align-items: center;
-    line-height: 36px;
-    margin-bottom: 12px;
-    padding: 8px;
-    border-radius: 8px;
+.stButton button {
+    background-color: #E8FFF2 !important;
+    border: 1px solid #D4FFE4 !important;
+    color: #2E7D32 !important;
 }
-.download-section:hover {
-    background-color: #f8f9fa;
+.stButton button:hover {
+    background-color: #D4FFE4 !important;
+    border-color: #2E7D32 !important;
 }
-.download-section .label {
-    flex: 1;
-    margin-right: 12px;
+.stButton button:disabled {
+    background-color: #f0f0f0 !important;
+    border-color: #cccccc !important;
+    color: #666666 !important;
 }
-.download-section .button {
-    background-color: #E8FFF2;
-    border: 1px solid #D4FFE4;
-    color: #2E7D32;
-    padding: 8px 12px;
-    border-radius: 6px;
-    margin-right: 12px;
-    cursor: pointer;
-}
-.download-section .checkbox {
-    width: 18px;
-    height: 18px;
-    border: 2px solid #D4FFE4;
-    margin-right: 12px;
-}
-.download-section .status-icon {
-    width: 20px;
-    height: 20px;
+.label {
+    font-size: 16px;
+    padding: 8px 0;
 }
 </style>
 """, unsafe_allow_html=True)
-
-# Créer une ligne de téléchargement pour chaque document
-for key, item in data.items():
-    st.markdown(f"""
-    <div class="download-section">
-        <span class="label">{item['label']}</span>
-        <button class="button">Download</button>
-        <input type="checkbox" class="checkbox">
-        <img src="success_icon.svg" class="status-icon">
-    </div>
-    """, unsafe_allow_html=True)
