@@ -4,6 +4,9 @@ import pytesseract
 from PIL import Image
 import re
 import plotly.graph_objects as go
+import os
+
+pytesseract.pytesseract.tesseract_cmd = r'/usr/local/bin/tesseract'  # Chemin par défaut sur Mac
 
 def convert_pdf_to_images(pdf_file):
     with open("temp.pdf", "wb") as f:
@@ -19,6 +22,7 @@ def convert_pdf_to_images(pdf_file):
         images.append(img)
     
     pdf_document.close()
+    os.remove("temp.pdf")
     return images
 
 def extract_info(file):
@@ -173,7 +177,7 @@ if uploaded_files:
 # Display the pie chart
 st.plotly_chart(fig)
 
-# Download section layout
+# Créer une section de téléchargement pour chaque document
 st.markdown("""
 <style>
 .download-section {
@@ -181,8 +185,14 @@ st.markdown("""
     align-items: center;
     line-height: 36px;
     margin-bottom: 12px;
+    padding: 8px;
+    border-radius: 8px;
+}
+.download-section:hover {
+    background-color: #f8f9fa;
 }
 .download-section .label {
+    flex: 1;
     margin-right: 12px;
 }
 .download-section .button {
@@ -192,6 +202,7 @@ st.markdown("""
     padding: 8px 12px;
     border-radius: 6px;
     margin-right: 12px;
+    cursor: pointer;
 }
 .download-section .checkbox {
     width: 18px;
@@ -206,12 +217,13 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Example download section
-st.markdown("""
-<div class="download-section">
-    <span class="label">PV 2024</span>
-    <button class="button">Download</button>
-    <input type="checkbox" class="checkbox">
-    <img src="success_icon.svg" class="status-icon">
-</div>
-""", unsafe_allow_html=True)
+# Créer une ligne de téléchargement pour chaque document
+for key, item in data.items():
+    st.markdown(f"""
+    <div class="download-section">
+        <span class="label">{item['label']}</span>
+        <button class="button">Download</button>
+        <input type="checkbox" class="checkbox">
+        <img src="success_icon.svg" class="status-icon">
+    </div>
+    """, unsafe_allow_html=True)
